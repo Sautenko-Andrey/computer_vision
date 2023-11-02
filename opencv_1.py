@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 path = '../beerBot_DATA/pics/all_beers/001_edelburg_hefew.png'
 video_path = "../Downloads/cars.mp4"
@@ -69,9 +70,88 @@ def correct_img(path:str, new_size:tuple) -> None:
     #изменим размер изображения
     new_img = cv2.resize(img, new_size)
 
+    #уменьшим оригинал пропорционально в 2 раза
+    img = cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2))
+
+    #покажем пропорционально уменьшенное изображение
+    cv2.imshow("Small version",img)
+
     #покажем новое измененнное изображение
     cv2.imshow("Resized image",new_img)
 
     cv2.waitKey(0)
 
-correct_img(path, (500, 500))
+#correct_img(path, (500, 500))
+
+def cut_img(path:str):
+    """Обрезка изображения при выводе на экран с помощью срезов"""
+
+    img = cv2.imread(path)
+
+    #обрезка при выводе на экран
+    cv2.imshow("Cutted image",img[0:50, 0:100])
+
+    cv2.waitKey(0)
+
+#cut_img(path)
+
+def blur_img(path:str) -> None:
+    """Размытие изображения"""
+
+
+    img = cv2.imread(path)
+
+    #(7,7) - на сколько сильным будет размытие
+    blurred = cv2.GaussianBlur(img, (7,7), 0)
+
+    cv2.imshow("blurred pic",blurred)
+
+    cv2.waitKey(0)
+
+#blur_img(path)
+
+def img_to_gray(path:str) -> None:
+    """Преобразование картинки в чб"""
+
+    img = cv2.imread(path)
+
+    #cv2.COLOR_BGR2GRAY - выбираем формат смены
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    cv2.imshow("in gray color", gray_img)
+    cv2.waitKey(0)
+
+#img_to_gray(path)
+
+def find_corners(path:str) -> None:
+    '''Нахождение углов изображения,
+    то есть мы приводим изображение в
+    бинарный формат(черно-белый)'''
+
+    img = cv2.imread(path)
+
+    #90 - пороги - это как точности определения всех обводок изображения
+    res = cv2.Canny(img, 90 ,90)
+
+    #попробуем другие пороги
+    res2 = cv2.Canny(img, 30, 30)
+
+    cv2.imshow("result",res)
+    cv2.imshow("result 2", res2)  #тут точность обведения стала лучше (нужна большая точность - уменьшаем
+                                            #значение порогов#)
+    #создадим матрицу со значениями 1 типа uint8
+    kernel = np.ones((5,5), np.uint8)
+
+    #так же мы можем изменять ширину обводки(контура)
+    #iterations - обоводка(количество обводок, чем больше, тем жирнее обводка)
+    res3 = cv2.dilate(res, kernel, iterations= 1)
+
+    cv2.imshow("With dilate", res3)
+
+    #отменим обведение у предыдущего изображения
+    res4 = cv2.erode(res3, kernel, iterations=1)
+
+    cv2.imshow("without dilate", res4)
+    cv2.waitKey(0)
+
+find_corners(path)
